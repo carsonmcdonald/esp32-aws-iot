@@ -117,7 +117,6 @@ static void record_temp_task(void *pvParameters)
     rc = aws_iot_mqtt_init(&client, &mqttInitParams);
     if(SUCCESS != rc) {
       IOT_ERROR("aws_iot_mqtt_init returned error : %d ", rc);
-      fprintf(stderr, "ending1...\n");
       abort();
     }
 
@@ -133,14 +132,12 @@ static void record_temp_task(void *pvParameters)
     rc = aws_iot_mqtt_connect(&client, &connectParams);
     if(SUCCESS != rc) {
       IOT_ERROR("Error(%d) connecting to %s:%d", rc, mqttInitParams.pHostURL, mqttInitParams.port);
-      fprintf(stderr, "ending2...\n");
       abort();
     }
 
     rc = aws_iot_mqtt_autoreconnect_set_status(&client, true);
     if(SUCCESS != rc) {
       IOT_ERROR("Unable to set Auto Reconnect to true - %d", rc);
-      fprintf(stderr, "ending3...\n");
       abort();
     }
 
@@ -162,20 +159,20 @@ static void record_temp_task(void *pvParameters)
     uint32_t reconnectedCount = 0;
 
     while((NETWORK_ATTEMPTING_RECONNECT == rc || NETWORK_RECONNECTED == rc || SUCCESS == rc)) {
-      fprintf(stderr, "Top of loop: payloadCount=%d, reconnectAttempts=%d, reconnectedCount=%d\n", payloadCount, reconnectAttempts, reconnectedCount);
+      IOT_DEBUG("Top of loop: payloadCount=%d, reconnectAttempts=%d, reconnectedCount=%d\n", payloadCount, reconnectAttempts, reconnectedCount);
 
       // Max time the yield function will wait for read messages
       rc = aws_iot_mqtt_yield(&client, 1000);
       if(NETWORK_ATTEMPTING_RECONNECT == rc) {
         reconnectAttempts++;
-        fprintf(stderr, "Reconnecting...\n");
+        IOT_DEBUG("Reconnecting...\n");
         // If the client is attempting to reconnect we will skip the rest of the loop.
         continue;
       }
 
       if(NETWORK_RECONNECTED == rc) {
         reconnectedCount++;
-        fprintf(stderr, "Reconnected...\n");
+        IOT_DEBUG(stderr, "Reconnected...\n");
       }
 
       if(!has_timer_expired(&sendit)) {
@@ -188,7 +185,7 @@ static void record_temp_task(void *pvParameters)
       paramsQOS0.payloadLen = strlen(cPayload);
       rc = aws_iot_mqtt_publish(&client, topicName, strlen(topicName), &paramsQOS0);
       if (rc == MQTT_REQUEST_TIMEOUT_ERROR) {
-        fprintf(stderr, "QOS0 publish ack not received.\n");
+        IOT_DEBUG("QOS0 publish ack not received.\n");
         rc = SUCCESS;
       }
 
@@ -201,7 +198,7 @@ static void record_temp_task(void *pvParameters)
       countdown_ms(&sendit, 15000);
     }
 
-    fprintf(stderr, "ending4...\n");
+    IOT_ERROR("Escaped loop...\n");
     abort();
 }
 
