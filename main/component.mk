@@ -1,6 +1,4 @@
 
-include $(IDF_PATH)/make/component_common.mk
-
 COMPONENT_EXTRA_CLEAN := certs.h
 
 main.o: certs.h
