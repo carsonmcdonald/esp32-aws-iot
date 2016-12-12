@@ -205,7 +205,6 @@ static void record_temp_task(void *pvParameters)
 void app_main(void)
 {
   nvs_flash_init();
-  system_init();
   initialise_wifi();
   xTaskCreate(&record_temp_task, "record_temp_task", 8192*2, NULL, 5, NULL);
 }
